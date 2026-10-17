@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Class Hand Cricket 3D</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#071522;color:white;
+ font-family:Arial,sans-serif;text-align:center
+}
+header{padding:22px 10px}
+h1{color:#20e6a0}
+.card{
+ background:#102638;margin:15px auto;padding:18px;
+ border-radius:18px;max-width:650px;width:94%
+}
+input,select,button{
+ padding:12px;border-radius:10px;
+ border:0;margin:5px;font-size:16px
+}
+input,select{background:#eaf7ff;width:90%}
+button{
+ background:#20e6a0;color:#06251b;
+ font-weight:bold;cursor:pointer
+}
+.numbers{
+ display:grid;grid-template-columns:repeat(3,1fr);
+ gap:8px
+}
+.numbers button{font-size:22px;padding:18px 5px}
+.teams{
+ display:grid;grid-template-columns:repeat(2,1fr);gap:10px
+}
+.team{background:#071522;padding:12px;border-radius:12px}
+.score{font-size:32px;color:#20e6a0;font-weight:bold}
+#status{line-height:1.5}
+.small{color:#b8ccd9;font-size:13px;line-height:1.5}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🏏 CLASS HAND CRICKET</h1>
+<p>4 Teams • 16 Players • Cricket Challenge</p>
+</header>
+
+<div class="card">
+<h2>👤 Player Setup</h2>
+
+<input id="player" placeholder="Enter your name" maxlength="18">
+
+<br>
+
+<select id="team">
+<option>Team A</option>
+<option>Team B</option>
+<option>Team C</option>
+<option>Team D</option>
+</select>
+
+<br>
+
+<select id="overs">
+<option value="9">9 Overs</option>
+<option value="10">10 Overs</option>
+<option value="20">20 Overs</option>
+<option value="0">Unlimited Overs</option>
+</select>
+
+<br>
+
+<button onclick="joinTeam()">JOIN TEAM</button>
+<button onclick="makeRoom()">GENERATE ROOM CODE</button>
+
+<h3 id="room">Room Code: Not generated</h3>
+<p class="small">
+Demo room code abhi doosre phones ko connect nahi karta.
+</p>
+</div>
+
+<div class="card">
+<h2>👥 TEAMS</h2>
+
+<div class="teams">
+<div class="team">
+<h3>🟢 TEAM A</h3>
+<div id="A">0/4 Players</div>
+</div>
+
+<div class="team">
+<h3>🔵 TEAM B</h3>
+<div id="B">0/4 Players</div>
+</div>
+
+<div class="team">
+<h3>🟠 TEAM C</h3>
+<div id="C">0/4 Players</div>
+</div>
+
+<div class="team">
+<h3>🟣 TEAM D</h3>
+<div id="D">0/4 Players</div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h2>🏏 MATCH ARENA</h2>
+
+<p>YOUR RUNS</p>
+<div class="score" id="runs">0</div>
+
+<p>WICKETS</p>
+<div class="score" id="wickets">0</div>
+
+<p>BALLS</p>
+<div id="balls">0</div>
+
+<p id="status">Start batting by choosing a number!</p>
+
+<div class="numbers" id="numbers"></div>
+
+<br>
+
+<button onclick="switchRole()">SWITCH ROLE</button>
+<button onclick="resetGame()">RESET MATCH</button>
+</div>
+
+<div class="card">
+<h2>📢 ONLINE MULTIPLAYER</h2>
+<p class="small">
+This is currently an offline demo. To play with classmates
+on separate phones, a secure online database and hosting
+must be connected. Room codes and scores are not synced yet.
+</p>
+</div>
+
+<script>
+const choices=[1,2,3,4,5,6,9,10,20];
+
+let runs=0;
+let wickets=0;
+let balls=0;
+let batting=true;
+let players={A:[],B:[],C:[],D:[]};
+
+const $=id=>document.getElementById(id);
+
+$("numbers").innerHTML=choices.map(n=>
+ `<button onclick="play(${n})">${n}</button>`
+).join("");
+
+function joinTeam(){
+ let name=$("player").value.trim();
+ if(!name){
+  alert("Please enter your name!");
+  return;
+ }
+
+ let key=$("team").value.slice(-1);
+
+ if(players[key].length>=4){
+  alert("This team already has 4 players!");
+  return;
+ }
+
+ players[key].push(name);
+
+ $(key).innerHTML=
+ players[key].map((p,i)=>`${i+1}. ${escapeHTML(p)}`).join("<br>")+
+ `<br><br>${players[key].length}/4 Players`;
+
+ $("status").textContent=
+ name+" joined Team "+key+" in this local demo.";
+}
+
+function escapeHTML(s){
+ return s.replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",
+ '"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+function makeRoom(){
+ let code=Math.random().toString(36)
+ .substring(2,8).toUpperCase();
+
+ $("room").textContent="Demo Room Code: "+code;
+ $("status").textContent=
+ "Demo code created. Online connection is not enabled yet.";
+}
+
+function play(n){
+ if(wickets>=10){
+  $("status").textContent="Innings finished! Reset to play again.";
+  return;
+ }
+
+ let limit=Number($("overs").value)*6;
+
+ if(limit>0 && balls>=limit){
+  $("status").textContent="Overs completed!";
+  return;
+ }
+
+ let opponent=choices[
+ Math.floor(Math.random()*choices.length)
+ ];
+
+ balls++;
+
+ if(n===opponent){
+  wickets++;
+  $("status").textContent=
+  "You chose "+n+", computer chose "+opponent+". OUT!";
+ }else if(batting){
+  runs+=n;
+  $("status").textContent=
+  "You chose "+n+", computer chose "+opponent+
+  ". You scored "+n+" runs!";
+ }else{
+  $("status").textContent=
+  "You bowled "+n+". Computer chose "+opponent+
+  ". This is a simple bowling demo.";
+ }
+
+ $("runs").textContent=runs;
+ $("wickets").textContent=wickets;
+ $("balls").textContent=balls;
+}
+
+function switchRole(){
+ batting=!batting;
+ $("status").textContent=batting?
+ "You are batting! Choose your runs.":
+ "You are bowling! Choose your number.";
+}
+
+function resetGame(){
+ runs=0;
+ wickets=0;
+ balls=0;
+
+ $("runs").textContent=0;
+ $("wickets").textContent=0;
+ $("balls").textContent=0;
+ $("status").textContent="New innings started!";
+}
+</script>
+
+</body>
+</html>
